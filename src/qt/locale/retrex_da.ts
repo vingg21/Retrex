@@ -4051,8 +4051,8 @@ For eksempel: alertnotify=Echo %% | mail - s "Retrex ALARM!" e-mail@administrato
         <translation>Der skal angives en masternodeprivkey i konfigurationen. For mere information, se i dokumentationen.</translation>
     </message>
     <message>
-        <source>(23301 could be used only on mainnet)</source>
-        <translation>(23301 kunne kun bruges på hovednettet)</translation>
+        <source>(30521 could be used only on mainnet)</source>
+        <translation>(30521 kunne kun bruges på hovednettet)</translation>
     </message>
     <message>
         <source>(default: %s)</source>
@@ -4063,8 +4063,8 @@ For eksempel: alertnotify=Echo %% | mail - s "Retrex ALARM!" e-mail@administrato
         <translation>(default: 1)</translation>
     </message>
     <message>
-        <source>(must be 23301 for mainnet)</source>
-        <translation>(skal være 23301 for hovednettet)</translation>
+        <source>(must be 30521 for mainnet)</source>
+        <translation>(skal være 30521 for hovednettet)</translation>
     </message>
     <message>
         <source>Accept command line and JSON-RPC commands</source>

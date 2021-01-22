@@ -54,10 +54,10 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 // + Contains no strange transactions
 static Checkpoints::MapCheckpoints mapCheckpoints =
     boost::assign::map_list_of
-    (0, uint256("0x0000033561457696ada896983956b95a7d79b92ef2f9cd7cc123a06d7536fb9d"));
+    (0, uint256("000003e174ef7495c7b7e90a2a018cea99f43fd2496e8a492735e889a8a4f8a0"));
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
-    1611262459, // * UNIX timestamp of last checkpoint block
+    1611314898, // * UNIX timestamp of last checkpoint block
     0,    // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
     2000        // * estimated number of transactions per day after checkpoint
@@ -68,7 +68,7 @@ static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
     (0, uint256("0x"));
 static const Checkpoints::CCheckpointData dataTestnet = {
     &mapCheckpointsTestnet,
-    1611262459,
+    1611314898,
     0,
     250};
 
@@ -78,7 +78,7 @@ static Checkpoints::MapCheckpoints mapCheckpointsRegtest =
 //    (0, uint256("0x000001733877023e9a2751258b8119e420e153377ffd21c996af58c8cdceede5")); // quark
 static const Checkpoints::CCheckpointData dataRegtest = {
     &mapCheckpointsRegtest,
-    1611262459,
+    1611314898,
     0,
     100};
 
@@ -103,13 +103,13 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 4-byte int at any alignment.
          */
-        pchMessageStart[0] = 0xc7;
-        pchMessageStart[1] = 0x29;
-        pchMessageStart[2] = 0x73;
-        pchMessageStart[3] = 0xb1;
-        vAlertPubKey = ParseHex("047ff78a093ca911fbe3c7cd9b8b81976696d92e6ad3d987b00a4cc4841fe9689ed6902be9c6942ef77492d0531bf68cf2e53dc0ac683359f938a7a52a988ced8c");
-        nDefaultPort = 23301;
-        bnProofOfWorkLimit = ~uint256(0) >> 10; // Retrex starting difficulty is 1 / 2^12
+        pchMessageStart[0] = 0xb1;
+        pchMessageStart[1] = 0x47;
+        pchMessageStart[2] = 0x20;
+        pchMessageStart[3] = 0xa0;
+        vAlertPubKey = ParseHex("043c7ff1e3163537b12dde14a17bfd497c607f96ad73d87706035f62064e10e3e408b5cd7da97facecfc38d207a7ac35a9826b9b2ddf85a29d90f9df030e414da3");
+        nDefaultPort = 30521;
+        bnProofOfWorkLimit = ~uint256(0) >> 20; // Retrex starting difficulty is 1 / 2^12
         nSubsidyHalvingInterval = 64800;   // HALVING EVERY: 64800 BLOCKS
         nSubsidyBudgetPercentage = 5;      // Must be less than 100
         nMaxReorganizationDepth = 100;
@@ -156,25 +156,25 @@ public:
             nonce: 308971
             genesis hash: 00000c392c066ec40b4138a3642ac7c7c3a0b157be45553ea1adcce4196c968d
         */
-        const char* pszTimestamp = "Retrex game changing project of 2021";
+        const char* pszTimestamp = "Retrex January 22 2021 Node Starts";
         CMutableTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].nValue = 0 * COIN;
-        txNew.vout[0].scriptPubKey = CScript() << ParseHex("047ff78a093ca911fbe3c7cd9b8b81976696d92e6ad3d987b00a4cc4841fe9689ed6902be9c6942ef77492d0531bf68cf2e53dc0ac683359f938a7a52a988ced8c") << OP_CHECKSIG;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("043c7ff1e3163537b12dde14a17bfd497c607f96ad73d87706035f62064e10e3e408b5cd7da97facecfc38d207a7ac35a9826b9b2ddf85a29d90f9df030e414da3") << OP_CHECKSIG;
         genesis.vtx.push_back(txNew);
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
-        genesis.nTime = 1611262459;
+        genesis.nTime = 1611314898;
         genesis.nBits = 0x1e0ffff0;
-        genesis.nNonce = 1724278;
+        genesis.nNonce = 589485;
 
 
         hashGenesisBlock = genesis.GetHash();
-        assert(genesis.hashMerkleRoot == uint256("0xdcbdb0e19f7d57b85e9d6632f5229a51e717a35d174d8eefa049ff82b552dbc1"));
-        assert(hashGenesisBlock == uint256("0x0000033561457696ada896983956b95a7d79b92ef2f9cd7cc123a06d7536fb9d"));
+        assert(genesis.hashMerkleRoot == uint256("0xf70b9ee426cb739580d72c7e5c955100d0ecae1a2eccd7f78789bb4ffc8c2417"));
+        assert(hashGenesisBlock == uint256("0x000003e174ef7495c7b7e90a2a018cea99f43fd2496e8a492735e889a8a4f8a0"));
 
         // Zerocoin, activated never
         nZerocoinStartHeight = INT_MAX;
@@ -200,7 +200,7 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
         // 	BIP44 coin type is from https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x90)(0x02)(0x0a)(0xe4).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x02)(0x0a)(0xb9).convert_to_container<std::vector<unsigned char> >();
 
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
@@ -214,7 +214,7 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
-        strSporkKey = "047ff78a093ca911fbe3c7cd9b8b81976696d92e6ad3d987b00a4cc4841fe9689ed6902be9c6942ef77492d0531bf68cf2e53dc0ac683359f938a7a52a988ced8c";
+        strSporkKey = "043c7ff1e3163537b12dde14a17bfd497c607f96ad73d87706035f62064e10e3e408b5cd7da97facecfc38d207a7ac35a9826b9b2ddf85a29d90f9df030e414da3";
         strObfuscationPoolDummyAddress = "D87q2gC9j6nNrnzCsg4aY6bHMLsT9nUhEw";
         nStartMasternodePayments = genesis.nTime + 60 * 60; // 1 hr after genesis
 
@@ -254,12 +254,12 @@ public:
     {
         networkID = CBaseChainParams::TESTNET;
         strNetworkID = "test";
-        pchMessageStart[0] = 0xc1;
-        pchMessageStart[1] = 0x26;
-        pchMessageStart[2] = 0x91;
-        pchMessageStart[3] = 0x7e;
-        vAlertPubKey = ParseHex("047ff78a093ca911fbe3c7cd9b8b81976696d92e6ad3d987b00a4cc4841fe9689ed6902be9c6942ef77492d0531bf68cf2e53dc0ac683359f938a7a52a988ced8c");
-        nDefaultPort = 23303;
+        pchMessageStart[0] = 0xc2;
+        pchMessageStart[1] = 0x27;
+        pchMessageStart[2] = 0x92;
+        pchMessageStart[3] = 0x8e;
+        vAlertPubKey = ParseHex("043c7ff1e3163537b12dde14a17bfd497c607f96ad73d87706035f62064e10e3e408b5cd7da97facecfc38d207a7ac35a9826b9b2ddf85a29d90f9df030e414da3");
+        nDefaultPort = 30523;
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
@@ -320,7 +320,7 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
         // Testnet retrex BIP44 coin type is '1' (All coin's testnet default)
-        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x10)(0x04).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x10)(0x02).convert_to_container<std::vector<unsigned char> >();
 
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
@@ -332,7 +332,7 @@ public:
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 2;
-        strSporkKey = "047ff78a093ca911fbe3c7cd9b8b81976696d92e6ad3d987b00a4cc4841fe9689ed6902be9c6942ef77492d0531bf68cf2e53dc0ac683359f938a7a52a988ced8c";
+        strSporkKey = "043c7ff1e3163537b12dde14a17bfd497c607f96ad73d87706035f62064e10e3e408b5cd7da97facecfc38d207a7ac35a9826b9b2ddf85a29d90f9df030e414da3";
         strObfuscationPoolDummyAddress = "y57cqfGRkekRyDRNeJiLtYVEbvhXrNbmox";
         nStartMasternodePayments = genesis.nTime + 60 * 60; // 1 hr after genesis
         nBudget_Fee_Confirmations = 3; // Number of confirmations for the finalization fee. We have to make this very short
@@ -356,10 +356,10 @@ public:
         networkID = CBaseChainParams::REGTEST;
         strNetworkID = "regtest";
         strNetworkID = "regtest";
-        pchMessageStart[0] = 0xb7;
-        pchMessageStart[1] = 0x4e;
-        pchMessageStart[2] = 0x83;
-        pchMessageStart[3] = 0xc7;
+        pchMessageStart[0] = 0xb1;
+        pchMessageStart[1] = 0x4a;
+        pchMessageStart[2] = 0x84;
+        pchMessageStart[3] = 0xc8;
         nSubsidyHalvingInterval = 150;
         nEnforceBlockUpgradeMajority = 750;
         nRejectBlockOutdatedMajority = 950;

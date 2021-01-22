@@ -3496,8 +3496,8 @@ https://www.transifex.com/retrex-project/retrex-project-translations</translatio
         <translation>Você deve especificar uma masternodeprivkey na configuração. Favor verificar o manual para obter ajuda.</translation>
     </message>
     <message>
-        <source>(23301 could be used only on mainnet)</source>
-        <translation>(23301 could be used only on mainnet)</translation>
+        <source>(30521 could be used only on mainnet)</source>
+        <translation>(30521 could be used only on mainnet)</translation>
     </message>
     <message>
         <source>(default: %s)</source>
@@ -3508,8 +3508,8 @@ https://www.transifex.com/retrex-project/retrex-project-translations</translatio
         <translation>(padrão: 1)</translation>
     </message>
     <message>
-        <source>(must be 23301 for mainnet)</source>
-        <translation>(deve ser 23301 para mainnet)</translation>
+        <source>(must be 30521 for mainnet)</source>
+        <translation>(deve ser 30521 para mainnet)</translation>
     </message>
     <message>
         <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>

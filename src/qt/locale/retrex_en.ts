@@ -6289,8 +6289,8 @@ for example: alertnotify=echo %%s | mail -s &quot;Retrex Alert&quot; admin@foo.c
     </message>
     <message>
         <location line="+3"/>
-        <source>(23301 could be used only on mainnet)</source>
-        <translation type="unfinished">(23301 could be used only on mainnet)</translation>
+        <source>(30521 could be used only on mainnet)</source>
+        <translation type="unfinished">(30521 could be used only on mainnet)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -6304,7 +6304,7 @@ for example: alertnotify=echo %%s | mail -s &quot;Retrex Alert&quot; admin@foo.c
     </message>
     <message>
         <location line="+1"/>
-        <source>(must be 23301 for mainnet)</source>
+        <source>(must be 30521 for mainnet)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

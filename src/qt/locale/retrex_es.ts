@@ -4090,8 +4090,8 @@ por ejemplo: alertnotify=echo %%s | mail -s "Retrex Alert" admin@foo.com
         <translation>Debes especificar un masternodeprivkey en la configuración. Por favor mira la documentación por ayuda.</translation>
     </message>
     <message>
-        <source>(23301 could be used only on mainnet)</source>
-        <translation>(23301 puede ser utilizado solo en mainnet)</translation>
+        <source>(30521 could be used only on mainnet)</source>
+        <translation>(30521 puede ser utilizado solo en mainnet)</translation>
     </message>
     <message>
         <source>(default: %s)</source>
@@ -4102,8 +4102,8 @@ por ejemplo: alertnotify=echo %%s | mail -s "Retrex Alert" admin@foo.com
         <translation>(predeterminado: 1)</translation>
     </message>
     <message>
-        <source>(must be 23301 for mainnet)</source>
-        <translation>(debe ser 23301 para un mainnet)</translation>
+        <source>(must be 30521 for mainnet)</source>
+        <translation>(debe ser 30521 para un mainnet)</translation>
     </message>
     <message>
         <source>Accept command line and JSON-RPC commands</source>
