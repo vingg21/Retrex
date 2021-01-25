@@ -43,7 +43,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1">
+     <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -86,7 +86,7 @@
             <number>0</number>
            </property>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_Header" stretch="1,0,1">
+            <layout class="QHBoxLayout" name="horizontalLayout_Header" stretch="1">
              <property name="spacing">
               <number>6</number>
              </property>
@@ -112,50 +112,10 @@
                 </font>
                </property>
                <property name="text">
-                <string>OVERVIEW</string>
+                <string>Overview</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_Header">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="labelOverviewHeaderRight">
-               <property name="minimumSize">
-                <size>
-                 <width>464</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>14</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -213,7 +173,7 @@
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
-                  <!--
+                <!--
                   <item>
                    <widget class="QFrame" name="frame_CombinedBalances">
                     <property name="minimumSize">
@@ -229,8 +189,14 @@
                      <enum>QFrame::Raised</enum>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_5">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <property name="sizeConstraint">
+                      <enum>QLayout::SetNoConstraint</enum>
+                     </property>
                      <item>
-                      <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0">
+                      <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0">
                        <item>
                         <widget class="QLabel" name="label_5z">
                          <property name="minimumSize">
@@ -241,9 +207,9 @@
                          </property>
                          <property name="font">
                           <font>
-                           <pointsize>12</pointsize>
-                           <weight>75</weight>
-                           <bold>true</bold>
+                           <pointsize>24</pointsize>
+                           <weight>50</weight>
+                           <bold>false</bold>
                           </font>
                          </property>
                          <property name="toolTip">
@@ -263,7 +229,7 @@
                           <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Retrex network after a connection is established, but this process has not completed yet.</string>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">QLabel { color: #ee2f77; }</string>
+                          <string notr="true">QLabel { color: red; }</string>
                          </property>
                          <property name="text">
                           <string notr="true">(out of sync)</string>
@@ -289,28 +255,12 @@
                       </layout>
                      </item>
                      <item>
-                      <widget class="Line" name="line_CombinedBalance">
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>1</height>
-                        </size>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>16777215</width>
-                         <height>1</height>
-                        </size>
-                       </property>
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
                       <layout class="QGridLayout" name="gridLayout_3">
-                       <property name="spacing">
+                       <property name="horizontalSpacing">
                         <number>12</number>
+                       </property>
+                       <property name="verticalSpacing">
+                        <number>0</number>
                        </property>
                        <item row="1" column="0">
                         <widget class="QLabel" name="labelBalanceTextz">
@@ -323,8 +273,8 @@
                         <widget class="QLabel" name="labelBalancez">
                          <property name="font">
                           <font>
-                           <weight>75</weight>
-                           <bold>true</bold>
+                           <weight>50</weight>
+                           <bold>false</bold>
                           </font>
                          </property>
                          <property name="cursor">
@@ -355,8 +305,8 @@
                         <widget class="QLabel" name="labelTotalz">
                          <property name="font">
                           <font>
-                           <weight>75</weight>
-                           <bold>true</bold>
+                           <weight>50</weight>
+                           <bold>false</bold>
                           </font>
                          </property>
                          <property name="cursor">
@@ -384,7 +334,7 @@
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>40</width>
-                           <height>20</height>
+                           <height>0</height>
                           </size>
                          </property>
                         </spacer>
@@ -407,7 +357,7 @@
                     </layout>
                    </widget>
                   </item>
-              -->
+                  -->
                   <item>
                    <widget class="QFrame" name="frame_Balances">
                     <property name="frameShape">
@@ -429,23 +379,23 @@
                          </property>
                          <property name="font">
                           <font>
-                           <pointsize>12</pointsize>
-                           <weight>75</weight>
-                           <bold>true</bold>
+                           <pointsize>24</pointsize>
+                           <weight>50</weight>
+                           <bold>false</bold>
                           </font>
                          </property>
                          <property name="text">
-                          <string>REEX Balance</string>
+                          <string>REEX BALANCE</string>
                          </property>
                         </widget>
                        </item>
-                       <!-- <item>
+                      <!-- <item>
                         <widget class="QLabel" name="labelREEXPercent">
                          <property name="text">
-                          <string notr="true">0 %</string>
+                          <string notr="false">0 %</string>
                          </property>
-                        </widget>
-                       </item> -->
+                       </widget>
+                       </item>  -->
                        <item>
                         <spacer name="horizontalSpacer_3">
                          <property name="orientation">
@@ -462,28 +412,12 @@
                       </layout>
                      </item>
                      <item>
-                      <widget class="Line" name="line_Balance">
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>1</height>
-                        </size>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>16777215</width>
-                         <height>1</height>
-                        </size>
-                       </property>
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
                       <layout class="QGridLayout" name="gridLayout">
-                       <property name="spacing">
+                       <property name="horizontalSpacing">
                         <number>12</number>
+                       </property>
+                       <property name="verticalSpacing">
+                        <number>0</number>
                        </property>
                        <item row="0" column="1">
                         <widget class="QLabel" name="labelSpendable">
@@ -738,11 +672,11 @@
                        </item>
                        <item row="5" column="0">
                         <widget class="QLabel" name="labelTotalText">
-                         <property name="text">
-                          <string>Total:</string>
-                         </property>
                          <property name="toolTip">
                           <string>Your current Retrex balance, unconfirmed and immature transactions included</string>
+                         </property>
+                         <property name="text">
+                          <string>Total:</string>
                          </property>
                         </widget>
                        </item>
@@ -827,8 +761,7 @@
                     </layout>
                    </widget>
                   </item>
-                  <!--
-                  <item>
+                <!--  <item>
                    <widget class="QFrame" name="frame_ZerocoinBalances">
                     <property name="frameShape">
                      <enum>QFrame::StyledPanel</enum>
@@ -838,7 +771,7 @@
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_7">
                      <item>
-                      <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0">
+                      <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0,0">
                        <item>
                         <widget class="QLabel" name="label_5z_3">
                          <property name="minimumSize">
@@ -849,9 +782,9 @@
                          </property>
                          <property name="font">
                           <font>
-                           <pointsize>12</pointsize>
-                           <weight>75</weight>
-                           <bold>true</bold>
+                           <pointsize>24</pointsize>
+                           <weight>50</weight>
+                           <bold>false</bold>
                           </font>
                          </property>
                          <property name="text">
@@ -882,33 +815,17 @@
                       </layout>
                      </item>
                      <item>
-                      <widget class="Line" name="line_ZerocoinBalance">
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>1</height>
-                        </size>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>16777215</width>
-                         <height>1</height>
-                        </size>
-                       </property>
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
                       <layout class="QGridLayout" name="gridLayout_5">
-                       <property name="spacing">
+                       <property name="horizontalSpacing">
                         <number>12</number>
+                       </property>
+                       <property name="verticalSpacing">
+                        <number>0</number>
                        </property>
                        <item row="1" column="0">
                         <widget class="QLabel" name="labelzBalanceMatureText">
                          <property name="toolTip">
-                          <string>Mature: more than 20 confirmation and more than 3 mints of the same denomination after it was minted.
+                          <string>Mature: more than 20 confirmation and more than 1 mint of the same denomination after it was minted.
 These zREEX are spendable.</string>
                          </property>
                          <property name="text">
@@ -925,7 +842,7 @@ These zREEX are spendable.</string>
                           </font>
                          </property>
                          <property name="toolTip">
-                          <string>Mature: more than 20 confirmation and more than 3 mints of the same denomination after it was minted.
+                          <string>Mature: more than 20 confirmation and more than 1 mint of the same denomination after it was minted.
 These zREEX are spendable.</string>
                          </property>
                          <property name="text">
@@ -1063,8 +980,7 @@ Immature: confirmed, but less than 3 mints of the same denomination after it was
                      </item>
                     </layout>
                    </widget>
-                  </item>
-              -->
+                  </item>  -->
                  </layout>
                 </widget>
                </item>
@@ -1086,7 +1002,7 @@ Immature: confirmed, but less than 3 mints of the same denomination after it was
                  <property name="frameShadow">
                   <enum>QFrame::Raised</enum>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_1" stretch="0,0,0,0,0">
+                 <layout class="QVBoxLayout" name="verticalLayout_1" stretch="0,0,0,0">
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                     <item>
@@ -1099,9 +1015,9 @@ Immature: confirmed, but less than 3 mints of the same denomination after it was
                       </property>
                       <property name="font">
                        <font>
-                        <pointsize>12</pointsize>
-                        <weight>75</weight>
-                        <bold>true</bold>
+                        <pointsize>24</pointsize>
+                        <weight>50</weight>
+                        <bold>false</bold>
                        </font>
                       </property>
                       <property name="text">
@@ -1118,7 +1034,7 @@ Immature: confirmed, but less than 3 mints of the same denomination after it was
                        <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Retrex network after a connection is established, but this process has not completed yet.</string>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">QLabel { color: #ee2f77; }</string>
+                       <string notr="true">QLabel { color: red; }</string>
                       </property>
                       <property name="text">
                        <string notr="true">(out of sync)</string>
@@ -1142,25 +1058,6 @@ Immature: confirmed, but less than 3 mints of the same denomination after it was
                      </spacer>
                     </item>
                    </layout>
-                  </item>
-                  <item>
-                   <widget class="Line" name="line">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>1</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>1</height>
-                     </size>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
                   </item>
                   <item>
                    <widget class="QListView" name="listTransactions">

@@ -20,7 +20,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabMain">
       <attribute name="title">
@@ -130,11 +130,10 @@
          </property>
         </spacer>
        </item>
-       <!--
        <item>
         <widget class="QCheckBox" name="checkBoxZeromintEnable">
          <property name="toolTip">
-          <string>Enable automatic minting of REEX units to zREEX</string>
+          <string>Enable automatic minting of Retrex units to zREEX</string>
          </property>
          <property name="layoutDirection">
           <enum>Qt::LeftToRight</enum>
@@ -210,7 +209,6 @@
          </item>
         </layout>
        </item>
-   -->
       </layout>
      </widget>
      <widget class="QWidget" name="tabWallet">
@@ -379,7 +377,7 @@
           <widget class="QLineEdit" name="proxyPort">
            <property name="minimumSize">
             <size>
-             <width>55</width>
+             <width>75</width>
              <height>0</height>
             </size>
            </property>
@@ -748,6 +746,16 @@ https://www.transifex.com/retrex-project/retrex-project-translations</string>
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="text">
+        <string>&amp;Cancel</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="okButton">
        <property name="text">
         <string>&amp;OK</string>
@@ -757,16 +765,6 @@ https://www.transifex.com/retrex-project/retrex-project-translations</string>
        </property>
        <property name="default">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="cancelButton">
-       <property name="text">
-        <string>&amp;Cancel</string>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
        </property>
       </widget>
      </item>
