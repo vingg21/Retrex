@@ -5,7 +5,7 @@
 /****************************************************************************************/
 
 WalletFrame {
-	border-image: url(':/images/walletFrame_bg') 0 0 0 0 stretch stretch;
+	border-image: url(':/images/walletFrame') 0 0 0 0 stretch stretch;
 	border-top: 0px solid #000;
 	margin: 0;
 	padding: 0;
@@ -20,10 +20,10 @@ QStatusBar {
 	border: 0px solid #fff;
 }
 QMenuBar {
-	background-color: #fff;
+	background-color: #4e69e0;
 }
 QMenuBar::item {
-	background-color: #fff;
+	background-color: #4e69e0;
 	color: #333;
 }
 QMenuBar::item:selected {
@@ -140,7 +140,7 @@ QTabBar::tab {
     border-right-color:transparent;
 }
 QTabBar::tab:selected {
-    border-bottom: 3px solid #00d188;
+    border-bottom: 3px solid #4e69e0;
     background-color:transparent;
 }
 QTabBar::tab:pressed {
@@ -1032,13 +1032,13 @@ QWidget .QFrame#frame .QLabel#labelBalanceText {
 	margin-right: 5px;
 	padding-right: 5px;
 	font-weight: bold;
-	font-size: 14px;
+	font-size: 20px;
 	min-height: 28px;
 }
 QWidget .QFrame#frame .QLabel#labelBalance {
 	/* Available Balance */
 	qproperty-alignment: 'AlignVCenter | AlignLeft';
-	font-size: 12px;
+	font-size: 20px;
 	font-weight: bold;
 	color: #4159c4;
 	margin-left: 0px;
@@ -1333,11 +1333,12 @@ QWidget .QFrame#frame_2 {
 	margin-right: 20px;
 	margin-left: 0;
 	margin-top: 0;
-	background-image: url(':/images/retrex_logo_horizontal');
+	background-color:transparent;
 	background-repeat: none;
 }
 QWidget .QFrame#frame_2 .QLabel#label_4 {
 	/* Recent Transactions Label */
+  background-color:transparent;
 	min-width: 180px;
 	color: #4e69e0;
 	margin-left: 67px;
@@ -1359,8 +1360,9 @@ QWidget .QFrame#frame_2 .QLabel#labelTransactionsStatus {
 }
 QWidget .QFrame#frame_2 QListView {
 	/* Transaction List */
-	font-weight: normal;
-	font-size: 12px;
+  background-color:transparent;
+	font-weight: bold;
+	font-size: 15px;
 	max-width: 369px;
 	margin-top: 12px;
 	margin-left: 0px;
@@ -1370,6 +1372,7 @@ QWidget .QFrame#frame_2 QListView {
 
 QDialog#SendCoinsDialog {
 	background-color: transparent;
+	border-image: url(':/images/walletFrame_bg') 0 0 0 0 stretch stretch;
 }
 QDialog#SendCoinsDialog .QFrame#frameCoinControl {
 	/* Coin Control Section */
@@ -1674,6 +1677,7 @@ QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::seperator {} QDialo
 
 QWidget#ReceiveCoinsDialog {
 	background-color: transparent;
+	border-image: url(':/images/walletFrame_bg') 0 0 0 0 stretch stretch;
 }
 QWidget#ReceiveCoinsDialog .QFrame#frame2 .QLabel#label_2 {
 	/* Label Label */
@@ -1818,6 +1822,7 @@ QWidget#PrivacyDialog .QPushButton {
 
 QWidget#MasternodeList .QFrame#frameList {
 	background-color: transparent;
+  border-image: url(':/images/walletFrame_bg') 0 0 0 0 stretch stretch;
 }
 /********************************* CALENDAR WIDGET **************************************/
 
