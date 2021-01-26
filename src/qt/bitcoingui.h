@@ -6,7 +6,7 @@
 #define BITCOIN_QT_BITCOINGUI_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/phore-config.h"
+#include "config/retrex-config.h"
 #endif
 
 #include "amount.h"
@@ -30,7 +30,6 @@ class UnitDisplayStatusBarControl;
 class WalletFrame;
 class WalletModel;
 class MasternodeList;
-class ProposalList;
 
 class CWallet;
 
@@ -79,14 +78,15 @@ protected:
     bool eventFilter(QObject* object, QEvent* event);
 
 private:
-
     ClientModel* clientModel;
     WalletFrame* walletFrame;
 
     UnitDisplayStatusBarControl* unitDisplayControl;
     QLabel* labelStakingIcon;
+#ifdef ENABLE_ZEROCOIN
+//    QPushButton* labelAutoMintIcon;
+#endif
     QPushButton* labelEncryptionIcon;
-    QLabel *labelWalletHDStatusIcon;
     QPushButton* labelConnectionsIcon;
     QLabel* labelBlocksIcon;
     QLabel* progressBarLabel;
@@ -109,7 +109,9 @@ private:
     QAction* multisigSignAction;
     QAction* aboutAction;
     QAction* receiveCoinsAction;
+#ifdef ENABLE_ZEROCOIN
     QAction* privacyAction;
+#endif
     QAction* optionsAction;
     QAction* toggleHideAction;
     QAction* encryptWalletAction;
@@ -130,14 +132,12 @@ private:
     QAction* openBlockExplorerAction;
     QAction* showHelpMessageAction;
     QAction* multiSendAction;
-    QAction *proposalAction;
 
     QSystemTrayIcon* trayIcon;
     QMenu* trayIconMenu;
     Notificator* notificator;
     RPCConsole* rpcConsole;
     BlockExplorer* explorerWindow;
-
 
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
@@ -184,13 +184,13 @@ public slots:
        @param[in] ret       pointer to a bool that will be modified to whether Ok was clicked (modal only)
     */
     void message(const QString& title, const QString& message, unsigned int style, bool* ret = NULL);
+
 #ifdef ENABLE_WALLET
     void setStakingStatus();
-    /** Set the hd-enabled status as shown in the UI.
-     setHDStatus           current hd enabled status
-     @see WalletModel::hdEnabled
-     */
-    void setHDStatus(int hdEnabled);
+#ifdef ENABLE_ZEROCOIN
+//    void setAutoMintStatus();
+#endif
+
     /** Set the encryption status as shown in the UI.
        @param[in] status            current encryption status
        @see WalletModel::EncryptionStatus
@@ -215,12 +215,12 @@ private slots:
     void gotoMasternodePage();
     /** Switch to privacy page */
     void gotoReceiveCoinsPage();
+#ifdef ENABLE_ZEROCOIN
     /** Switch to receive coins page */
-    void gotoPrivacyPage();
+//    void gotoPrivacyPage();
+#endif
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
-    /** Switch to proposal page */
-    void gotoProposalPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

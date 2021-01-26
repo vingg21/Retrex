@@ -1,7 +1,7 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2017 The PIVX developers
-// Copyright (c) 2019 The Phore Developers
+// Copyright (c) 2021 The Retrex developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -15,10 +15,11 @@
 #include "chainparams.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "wallet/wallet.h"
+#include "wallet.h"
 
 #include <cstdlib>
 
+#include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 
 #include <QApplication>
@@ -52,14 +53,14 @@ using namespace boost;
 using namespace std;
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
-const QString BITCOIN_IPC_PREFIX("phore:");
+const QString BITCOIN_IPC_PREFIX("retrex:");
 // BIP70 payment protocol messages
 const char* BIP70_MESSAGE_PAYMENTACK = "PaymentACK";
 const char* BIP70_MESSAGE_PAYMENTREQUEST = "PaymentRequest";
 // BIP71 payment protocol media types
-const char* BIP71_MIMETYPE_PAYMENT = "application/phore-payment";
-const char* BIP71_MIMETYPE_PAYMENTACK = "application/phore-paymentack";
-const char* BIP71_MIMETYPE_PAYMENTREQUEST = "application/phore-paymentrequest";
+const char* BIP71_MIMETYPE_PAYMENT = "application/retrex-payment";
+const char* BIP71_MIMETYPE_PAYMENTACK = "application/retrex-paymentack";
+const char* BIP71_MIMETYPE_PAYMENTREQUEST = "application/retrex-paymentrequest";
 // BIP70 max payment request size in bytes (DoS protection)
 const qint64 BIP70_MAX_PAYMENTREQUEST_SIZE = 50000;
 
@@ -86,7 +87,7 @@ namespace // Anon namespace
 //
 static QString ipcServerName()
 {
-    QString name("PhoreQt");
+    QString name("RetrexQt");
 
     // Append a simple hash of the datadir
     // Note that GetDataDir(true) returns a different path
@@ -193,19 +194,21 @@ void PaymentServer::ipcParseCommandLine(int argc, char* argv[])
         if (arg.startsWith("-"))
             continue;
 
-        // If the phore: URI contains a payment request, we are not able to detect the
+        // If the retrex: URI contains a payment request, we are not able to detect the
         // network as that would require fetching and parsing the payment request.
         // That means clicking such an URI which contains a testnet payment request
         // will start a mainnet instance and throw a "wrong network" error.
-        if (arg.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // phore: URI
+        if (arg.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // retrex: URI
         {
             savedPaymentRequests.append(arg);
 
             SendCoinsRecipient r;
             if (GUIUtil::parseBitcoinURI(arg, &r) && !r.address.isEmpty()) {
-                if (IsValidDestinationString(r.address.toStdString(), Params(CBaseChainParams::MAIN))) {
+                CBitcoinAddress address(r.address.toStdString());
+
+                if (address.IsValid(Params(CBaseChainParams::MAIN))) {
                     SelectParams(CBaseChainParams::MAIN);
-                } else if (IsValidDestinationString(r.address.toStdString(), Params(CBaseChainParams::TESTNET))) {
+                } else if (address.IsValid(Params(CBaseChainParams::TESTNET))) {
                     SelectParams(CBaseChainParams::TESTNET);
                 }
             }
@@ -277,7 +280,7 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) : QObject(p
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     // Install global event filter to catch QFileOpenEvents
-    // on Mac: sent when you click phore: links
+    // on Mac: sent when you click retrex: links
     // other OSes: helpful when dealing with payment request files (in the future)
     if (parent)
         parent->installEventFilter(this);
@@ -293,7 +296,7 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) : QObject(p
         if (!uriServer->listen(name)) {
             // constructor is called early in init, so don't use "emit message()" here
             QMessageBox::critical(0, tr("Payment request error"),
-                tr("Cannot start phore: click-to-pay handler"));
+                tr("Cannot start retrex: click-to-pay handler"));
         } else {
             connect(uriServer, SIGNAL(newConnection()), this, SLOT(handleURIConnection()));
             connect(this, SIGNAL(receivedPaymentACK(QString)), this, SLOT(handlePaymentACK(QString)));
@@ -307,12 +310,12 @@ PaymentServer::~PaymentServer()
 }
 
 //
-// OSX-specific way of handling phore: URIs and
+// OSX-specific way of handling retrex: URIs and
 // PaymentRequest mime types
 //
 bool PaymentServer::eventFilter(QObject* object, QEvent* event)
 {
-    // clicking on phore: URIs creates FileOpen events on the Mac
+    // clicking on retrex: URIs creates FileOpen events on the Mac
     if (event->type() == QEvent::FileOpen) {
         QFileOpenEvent* fileEvent = static_cast<QFileOpenEvent*>(event);
         if (!fileEvent->file().isEmpty())
@@ -333,7 +336,7 @@ void PaymentServer::initNetManager()
     if (netManager != NULL)
         delete netManager;
 
-    // netManager is used to fetch paymentrequests given in phore: URIs
+    // netManager is used to fetch paymentrequests given in retrex: URIs
     netManager = new QNetworkAccessManager(this);
 
     QNetworkProxy proxy;
@@ -370,7 +373,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
         return;
     }
 
-    if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // phore: URI
+    if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // retrex: URI
     {
 #if QT_VERSION < 0x050000
         QUrl uri(s);
@@ -399,16 +402,15 @@ void PaymentServer::handleURIOrFile(const QString& s)
         {
             SendCoinsRecipient recipient;
             if (GUIUtil::parseBitcoinURI(s, &recipient)) {
-
-                if (!IsValidDestinationString(recipient.address.toStdString())) {
-
+                CBitcoinAddress address(recipient.address.toStdString());
+                if (!address.IsValid()) {
                     emit message(tr("URI handling"), tr("Invalid payment address %1").arg(recipient.address),
                         CClientUIInterface::MSG_ERROR);
                 } else
                     emit receivedPaymentRequest(recipient);
             } else
                 emit message(tr("URI handling"),
-                    tr("URI cannot be parsed! This can be caused by an invalid Phore address or malformed URI parameters."),
+                    tr("URI cannot be parsed! This can be caused by an invalid Retrex address or malformed URI parameters."),
                     CClientUIInterface::ICON_WARNING);
 
             return;
@@ -521,9 +523,9 @@ bool PaymentServer::processPaymentRequest(PaymentRequestPlus& request, SendCoins
         CTxDestination dest;
         if (ExtractDestination(sendingTo.first, dest)) {
             // Append destination address
-            addresses.append(QString::fromStdString(EncodeDestination(dest)));
+            addresses.append(QString::fromStdString(CBitcoinAddress(dest).ToString()));
         } else if (!recipient.authenticatedMerchant.isEmpty()) {
-            // Insecure payments to custom phore addresses are not supported
+            // Insecure payments to custom retrex addresses are not supported
             // (there is no good way to tell the user where they are paying in a way
             // they'd have a chance of understanding).
             emit message(tr("Payment request rejected"),
@@ -585,24 +587,25 @@ void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipien
     // Create a new refund address, or re-use:
     QString account = tr("Refund from %1").arg(recipient.authenticatedMerchant);
     std::string strAccount = account.toStdString();
-    CPubKey newKey;
-    if (wallet->GetKeyFromPool(newKey, false)) {
-        // BIP70 requests encode the scriptPubKey directly, so we are not restricted to address
-        // types supported by the receiver. As a result, we choose the address format we also
-        // use for change. Despite an actual payment and not change, this is a close match:
-        // it's the output type we use subject to privacy issues, but not restricted by what
-        // other software supports.
-        wallet->LearnRelatedScripts(newKey, g_change_type);
-        CTxDestination dest = GetDestinationForKey(newKey, g_change_type);
-        wallet->SetAddressBook(dest, strAccount, "refund");
-
-        CScript s = GetScriptForDestination(dest);
+    set<CTxDestination> refundAddresses = wallet->GetAccountAddresses(strAccount);
+    if (!refundAddresses.empty()) {
+        CScript s = GetScriptForDestination(*refundAddresses.begin());
         payments::Output* refund_to = payment.add_refund_to();
         refund_to->set_script(&s[0], s.size());
     } else {
-        // This should never happen, because sending coins should have
-        // just unlocked the wallet and refilled the keypool.
-        qWarning() << "PaymentServer::fetchPaymentACK: Error getting refund key, refund_to not set";
+        CPubKey newKey;
+        if (wallet->GetKeyFromPool(newKey)) {
+            CKeyID keyID = newKey.GetID();
+            wallet->SetAddressBook(keyID, strAccount, "refund");
+
+            CScript s = GetScriptForDestination(keyID);
+            payments::Output* refund_to = payment.add_refund_to();
+            refund_to->set_script(&s[0], s.size());
+        } else {
+            // This should never happen, because sending coins should have
+            // just unlocked the wallet and refilled the keypool.
+            qWarning() << "PaymentServer::fetchPaymentACK : Error getting refund key, refund_to not set";
+        }
     }
 
     int length = payment.ByteSize();

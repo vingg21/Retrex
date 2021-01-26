@@ -1,11 +1,12 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2021 The Retrex developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/phore-config.h"
+#include "config/retrex-config.h"
 #endif
 
 #include "optionsmodel.h"
@@ -22,8 +23,8 @@
 
 #ifdef ENABLE_WALLET
 #include "masternodeconfig.h"
-#include "wallet/wallet.h"
-#include "wallet/walletdb.h"
+#include "wallet.h"
+#include "walletdb.h"
 #endif
 
 #include <QNetworkProxy>
@@ -62,7 +63,7 @@ void OptionsModel::Init()
 
     // Display
     if (!settings.contains("nDisplayUnit"))
-        settings.setValue("nDisplayUnit", BitcoinUnits::PHR);
+        settings.setValue("nDisplayUnit", BitcoinUnits::REEX);
     nDisplayUnit = settings.value("nDisplayUnit").toInt();
 
     if (!settings.contains("strThirdPartyTxUrls"))
@@ -78,21 +79,23 @@ void OptionsModel::Init()
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
 
     if (!settings.contains("fZeromintEnable"))
-        settings.setValue("fZeromintEnable", false);
-    fEnableZeromint = settings.value("fZeromintEnable").toBool();
+        settings.setValue("fZeromintEnable", false);    // TU default false
+    //fEnableZeromint = settings.value("fZeromintEnable").toBool();
+    fEnableZeromint = false;    // TU force false
 
     if (!settings.contains("nZeromintPercentage"))
-        settings.setValue("nZeromintPercentage", 10);
-    nZeromintPercentage = settings.value("nZeromintPercentage").toLongLong();
-    
+        settings.setValue("nZeromintPercentage", 0);
+    //nZeromintPercentage = settings.value("nZeromintPercentage").toLongLong();
+    nZeromintPercentage = 0LL;  // TU force zero
+
     if (!settings.contains("nPreferredDenom"))
         settings.setValue("nPreferredDenom", 0);
     nPreferredDenom = settings.value("nPreferredDenom", "0").toLongLong();
 
-    if (!settings.contains("nAnonymizePhoreAmount"))
-        settings.setValue("nAnonymizePhoreAmount", 1000);
+    if (!settings.contains("nAnonymizeRetrexAmount"))
+        settings.setValue("nAnonymizeRetrexAmount", 1000);
 
-    nAnonymizePhoreAmount = settings.value("nAnonymizePhoreAmount").toLongLong();
+    nAnonymizeRetrexAmount = settings.value("nAnonymizeRetrexAmount").toLongLong();
 
     if (!settings.contains("fShowMasternodesTab"))
         settings.setValue("fShowMasternodesTab", masternodeConfig.getCount());
@@ -166,8 +169,8 @@ void OptionsModel::Init()
         SoftSetArg("-zeromintpercentage", settings.value("nZeromintPercentage").toString().toStdString());
     if (settings.contains("nPreferredDenom"))
         SoftSetArg("-preferredDenom", settings.value("nPreferredDenom").toString().toStdString());
-    if (settings.contains("nAnonymizePhoreAmount"))
-        SoftSetArg("-anonymizephoreamount", settings.value("nAnonymizePhoreAmount").toString().toStdString());
+    if (settings.contains("nAnonymizeRetrexAmount"))
+        SoftSetArg("-anonymizeretrexamount", settings.value("nAnonymizeRetrexAmount").toString().toStdString());
 
     language = settings.value("language").toString();
 }
@@ -178,7 +181,7 @@ void OptionsModel::Reset()
 
     // Remove all entries from our QSettings object
     settings.clear();
-    resetSettings = true; // Needed in phore.cpp during shotdown to also remove the window positions
+    resetSettings = true; // Needed in retrex.cpp during shotdown to also remove the window positions
 
     // default setting for OptionsModel::StartAtStartup - disabled
     if (GUIUtil::GetStartOnSystemStartup())
@@ -258,8 +261,8 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return QVariant(nZeromintPercentage);
         case ZeromintPrefDenom:
             return QVariant(nPreferredDenom);
-        case AnonymizePhoreAmount:
-            return QVariant(nAnonymizePhoreAmount);
+        case AnonymizeRetrexAmount:
+            return QVariant(nAnonymizeRetrexAmount);
         case Listen:
             return settings.value("fListen");
         default:
@@ -388,10 +391,10 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
             emit hideZeroBalancesChanged(fHideZeroBalances);
             break;
 
-        case AnonymizePhoreAmount:
-            nAnonymizePhoreAmount = value.toInt();
-            settings.setValue("nAnonymizePhoreAmount", nAnonymizePhoreAmount);
-            emit anonymizePhoreAmountChanged(nAnonymizePhoreAmount);
+        case AnonymizeRetrexAmount:
+            nAnonymizeRetrexAmount = value.toInt();
+            settings.setValue("nAnonymizeRetrexAmount", nAnonymizeRetrexAmount);
+            emit anonymizeRetrexAmountChanged(nAnonymizeRetrexAmount);
             break;
         case CoinControlFeatures:
             fCoinControlFeatures = value.toBool();

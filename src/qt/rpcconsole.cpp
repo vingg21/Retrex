@@ -1,6 +1,7 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2021 The Retrex developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,23 +10,14 @@
 
 #include "bantablemodel.h"
 #include "clientmodel.h"
-#include "walletmodel.h"
 #include "guiutil.h"
 #include "peertablemodel.h"
 
 #include "chainparams.h"
 #include "main.h"
-#include "rpc/client.h"
-#include "rpc/server.h"
+#include "rpcclient.h"
+#include "rpcserver.h"
 #include "util.h"
-
-#include "init.h"
-#include <startoptionsmain.h>
-#include "askpassphrasedialog.h"
-
-#ifdef ENABLE_WALLET
-#include "wallet/wallet.h"
-#endif // ENABLE_WALLET
 
 #include <openssl/crypto.h>
 
@@ -267,7 +259,6 @@ void RPCExecutor::request(const QString& command)
 RPCConsole::RPCConsole(QWidget* parent) : QDialog(parent),
                                           ui(new Ui::RPCConsole),
                                           clientModel(0),
-                                          walletModel(0),
                                           historyPtr(0),
                                           cachedNodeid(-1),
                                           peersTableContextMenu(0),
@@ -282,7 +273,6 @@ RPCConsole::RPCConsole(QWidget* parent) : QDialog(parent),
 
     // Install event filter for up and down arrow
     ui->lineEdit->installEventFilter(this);
-    ui->lineEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);
     ui->messagesWidget->installEventFilter(this);
 
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
@@ -296,33 +286,10 @@ RPCConsole::RPCConsole(QWidget* parent) : QDialog(parent),
     connect(ui->btn_upgradewallet, SIGNAL(clicked()), this, SLOT(walletUpgrade()));
     connect(ui->btn_reindex, SIGNAL(clicked()), this, SLOT(walletReindex()));
     connect(ui->btn_resync, SIGNAL(clicked()), this, SLOT(walletResync()));
-    connect(ui->btn_convert_to_hd_Wallet, SIGNAL(clicked()), this, SLOT(walletUpgradeToHd()));
 
     // set library version labels
     ui->openSSLVersion->setText(SSLeay_version(SSLEAY_VERSION));
 #ifdef ENABLE_WALLET
-    std::string strPathCustom = GetArg("-backuppath", "");
-    std::string strzphrPathCustom = GetArg("-zphrbackuppath", "");
-    int nCustomBackupThreshold = GetArg("-custombackupthreshold", DEFAULT_CUSTOMBACKUPTHRESHOLD);
-
-    if(!strPathCustom.empty()) {
-        ui->wallet_custombackuppath->setText(QString::fromStdString(strPathCustom));
-        ui->wallet_custombackuppath_label->show();
-        ui->wallet_custombackuppath->show();
-    }
-
-    if(!strzphrPathCustom.empty()) {
-        ui->wallet_customzphrbackuppath->setText(QString::fromStdString(strzphrPathCustom));
-        ui->wallet_customzphrbackuppath_label->setVisible(true);
-        ui->wallet_customzphrbackuppath->setVisible(true);
-    }
-
-    if((!strPathCustom.empty() || !strzphrPathCustom.empty()) && nCustomBackupThreshold > 0) {
-        ui->wallet_custombackupthreshold->setText(QString::fromStdString(std::to_string(nCustomBackupThreshold)));
-        ui->wallet_custombackupthreshold_label->setVisible(true);
-        ui->wallet_custombackupthreshold->setVisible(true);
-    }
-
     ui->berkeleyDBVersion->setText(DbEnv::version(0, 0, 0));
     ui->wallet_path->setText(QString::fromStdString(GetDataDir().string() + QDir::separator().toLatin1() + GetArg("-wallet", "wallet.dat")));
 #else
@@ -520,11 +487,6 @@ void RPCConsole::setClientModel(ClientModel* model)
     }
 }
 
-void RPCConsole::setWalletModel(WalletModel* walletModel)
-{
-    this->walletModel = walletModel;
-}
-
 static QString categoryClass(int category)
 {
     switch (category) {
@@ -585,10 +547,22 @@ void RPCConsole::walletResync()
         resyncWarning +=   tr("This needs quite some time and downloads a lot of data.<br /><br />");
         resyncWarning +=   tr("Your transactions and funds will be visible again after the download has completed.<br /><br />");
         resyncWarning +=   tr("Do you want to continue?.<br />");
+/*        
+    QMessageBox box;
+    box.setIconPixmap(QPixmap(":/res/icons/confirm.png"));
+    box.setText(tr("Confirm resync Blockchain"));   
+    box.setInformativeText(resyncWarning);
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel); 
+    box.setDefaultButton(QMessageBox::Cancel);    
+    box.show();
+    int retval = box.exec();
+*/
+
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm resync Blockchain"),
         resyncWarning,
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel);
+
 
     if (retval != QMessageBox::Yes) {
         // Resync canceled
@@ -597,106 +571,6 @@ void RPCConsole::walletResync()
 
     // Restart and resync
     buildParameterlist(RESYNC);
-}
-
-/** Restart wallet with "-resync" and upgrade to a HD wallet*/
-void RPCConsole::walletUpgradeToHd()
-{
-    QString upgradeWarning = tr("This will convert you non-HD wallet to a HD wallet<br /><br />");
-    upgradeWarning +=   tr("Make sure to make a backup of your wallet ahead of time<br /><br />");
-    upgradeWarning +=   tr("You shouldn't force close the wallet while this is running<br /><br />");
-    upgradeWarning +=   tr("Do you want to continue?.<br />");
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm upgrade to HD wallet"),
-                                                               upgradeWarning,
-                                                               QMessageBox::Yes | QMessageBox::Cancel,
-                                                               QMessageBox::Cancel);
-
-    if (retval != QMessageBox::Yes) {
-        // Resync canceled
-        return;
-    }
-
-    if (IsInitialBlockDownload()) {
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Cannot set a new HD seed while still in Initial Block Download");
-    }
-
-    LOCK2(cs_main, pwalletMain->cs_wallet);
-
-    // Do not do anything to HD wallets
-    if (pwalletMain->IsHDEnabled()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot upgrade a wallet to hd if It is already upgraded to hd.");
-    }
-
-    std::vector<std::string> words;
-    SecureString strWalletPass;
-    strWalletPass.reserve(100);
-
-    int prev_version = pwalletMain->GetVersion();
-
-    int nMaxVersion = GetArg("-upgradewallet", 0);
-    if (nMaxVersion == 0) // the -upgradewallet without argument case
-    {
-        LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
-        nMaxVersion = CLIENT_VERSION;
-        pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
-    } else
-        LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
-    if (nMaxVersion < pwalletMain->GetVersion()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot downgrade wallet");
-    }
-
-    pwalletMain->SetMaxVersion(nMaxVersion);
-
-    // Do not upgrade versions to any version between HD_SPLIT and FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
-    int max_version = pwalletMain->GetVersion();
-    if (!pwalletMain->CanSupportFeature(FEATURE_HD) && max_version >=FEATURE_HD && max_version < FEATURE_PRE_SPLIT_KEYPOOL) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot upgrade a non HD split wallet without upgrading to support pre split keypool. Please use -upgradewallet=169900 or -upgradewallet with no version specified.");
-    }
-
-    bool hd_upgrade = false;
-    bool split_upgrade = false;
-    if (pwalletMain->CanSupportFeature(FEATURE_HD) && !pwalletMain->IsHDEnabled()) {
-        LogPrintf("Upgrading wallet to HD\n");
-        pwalletMain->SetMinVersion(FEATURE_HD);
-
-        if (walletModel->getEncryptionStatus() == WalletModel::Locked || walletModel->getEncryptionStatus() == WalletModel::UnlockedForAnonymizationOnly) {
-            AskPassphraseDialog dlg(AskPassphraseDialog::Unlock, this, walletModel);
-            dlg.exec();
-            strWalletPass = dlg.getPassword();
-        } else {
-            strWalletPass = std::string().c_str();
-        }
-
-        StartOptionsMain dlg(nullptr);
-        dlg.exec();
-        words = dlg.getWords();
-
-        pwalletMain->GenerateNewHDChain(words, strWalletPass);
-
-        hd_upgrade = true;
-    }
-
-    // Upgrade to HD chain split if necessary
-    if (pwalletMain->CanSupportFeature(FEATURE_HD)) {
-        LogPrintf("Upgrading wallet to use HD chain split\n");
-        pwalletMain->SetMinVersion(FEATURE_PRE_SPLIT_KEYPOOL);
-        split_upgrade = FEATURE_HD > prev_version;
-    }
-
-    // Mark all keys currently in the keypool as pre-split
-    if (split_upgrade) {
-        pwalletMain->MarkPreSplitKeys();
-    }
-
-    // Regenerate the keypool if upgraded to HD
-    if (hd_upgrade) {
-        if (!pwalletMain->TopUpKeyPool()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Unable to generate keys\n");
-        }
-    }
-
-    buildParameterlist(RESCAN);
-
 }
 
 /** Build command-line parameter list for restart */
@@ -744,17 +618,13 @@ void RPCConsole::clear()
         "td.time { color: #808080; padding-top: 3px; } "
         "td.message { font-family: Courier, Courier New, Lucida Console, monospace; font-size: 12px; } " // Todo: Remove fixed font-size
         "td.cmd-request { color: #006060; } "
-        "td.cmd-error { color: red; } "
-        ".secwarning { color: red; }"
+        "td.cmd-error { color: #ee2f77; } "
         "b { color: #006060; } ");
 
-    message(CMD_REPLY, (tr("Welcome to the Phore RPC console.") + "<br>" +
+    message(CMD_REPLY, (tr("Welcome to the Retrex RPC console.") + "<br>" +
                            tr("Use up and down arrows to navigate history, and <b>Ctrl-L</b> to clear screen.") + "<br>" +
-                           tr("Type <b>help</b> for an overview of available commands.") +
-                           "<br><span class=\"secwarning\"><br>" +
-                           tr("WARNING: Scammers have been active, telling users to type commands here, stealing their wallet contents. Do not use this console without fully understanding the ramifications of a command.") +
-                           "</span>"),
-                           true);
+                           tr("Type <b>help</b> for an overview of available commands.")),
+        true);
 }
 
 void RPCConsole::reject()

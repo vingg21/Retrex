@@ -1,4 +1,5 @@
 // Copyright (c) 2017 The PIVX developers
+// Copyright (c) 2021 The Retrex developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,7 +13,7 @@
 #include "script/script.h"
 #include "primitives/transaction.h"
 #include "coins.h"
-#include "wallet/coincontrol.h"
+#include "coincontrol.h"
 #include "walletmodel.h"
 #include "coincontroldialog.h"
 

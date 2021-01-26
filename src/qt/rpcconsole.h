@@ -14,7 +14,6 @@
 #include <QCompleter>
 
 class ClientModel;
-class WalletModel;
 class RPCTimerInterface;
 
 namespace Ui
@@ -37,7 +36,6 @@ public:
     ~RPCConsole();
 
     void setClientModel(ClientModel* model);
-    void setWalletModel(WalletModel* walletModel);
 
     enum MessageClass {
         MC_ERROR,
@@ -82,7 +80,6 @@ public slots:
     void walletUpgrade();
     void walletReindex();
     void walletResync();
-    void walletUpgradeToHd();
 
     void reject();
     void message(int category, const QString& message, bool html = false);
@@ -106,7 +103,7 @@ public slots:
     void showPeers();
     /** Switch to wallet-repair tab and show */
     void showRepair();
-    /** Open external (default) editor with phore.conf */
+    /** Open external (default) editor with retrex.conf */
     void showConfEditor();
     /** Open external (default) editor with masternode.conf */
     void showMNConfEditor();
@@ -149,7 +146,6 @@ private:
 
     Ui::RPCConsole* ui;
     ClientModel* clientModel;
-    WalletModel* walletModel;
     QStringList history;
     int historyPtr;
     NodeId cachedNodeid;

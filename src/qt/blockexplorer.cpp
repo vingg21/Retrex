@@ -44,25 +44,26 @@ static std::string ValueToString(CAmount nValue, bool AllowNegative = false)
     if (nValue < 0 && !AllowNegative)
         return "<span>" + _("unknown") + "</span>";
 
-    QString Str = BitcoinUnits::formatWithUnit(BitcoinUnits::PHR, nValue);
+    QString Str = BitcoinUnits::formatWithUnit(BitcoinUnits::REEX, nValue);
     if (AllowNegative && nValue > 0)
         Str = '+' + Str;
     return std::string("<span>") + Str.toUtf8().data() + "</span>";
 }
 
-static std::string ScriptToString(const CScript& script, bool l = false, bool highlight = false)
+static std::string ScriptToString(const CScript& Script, bool Long = false, bool Highlight = false)
 {
-    if (script.empty())
+    if (Script.empty())
         return "unknown";
 
-    CTxDestination dest;
-    if (ExtractDestination(script, dest)) {
-        if (highlight)
-            return "<span class=\"addr\">" + EncodeDestination(dest) + "</span>";
+    CTxDestination Dest;
+    CBitcoinAddress Address;
+    if (ExtractDestination(Script, Dest) && Address.Set(Dest)) {
+        if (Highlight)
+            return "<span class=\"addr\">" + Address.ToString() + "</span>";
         else
-            return makeHRef(EncodeDestination(dest));
+            return makeHRef(Address.ToString());
     } else
-        return l ? "<pre>" + FormatScript(script) + "</pre>" : _("Non-standard script");
+        return Long ? "<pre>" + FormatScript(Script) + "</pre>" : _("Non-standard script");
 }
 
 static std::string TimeToString(uint64_t Time)
@@ -372,9 +373,9 @@ std::string TxToString(uint256 BlockHash, const CTransaction& tx)
     return Content;
 }
 
-std::string AddressToString(const CTxDestination& dest)
+std::string AddressToString(const CBitcoinAddress& Address)
 {
-    std::string txLabels[] =
+    std::string TxLabels[] =
         {
             _("Date"),
             _("Hash"),
@@ -384,9 +385,9 @@ std::string AddressToString(const CTxDestination& dest)
             _("Amount"),
             _("Delta"),
             _("Balance")};
-    std::string txContent = table + makeHTMLTableRow(txLabels, sizeof(txLabels) / sizeof(std::string));
+    std::string TxContent = table + makeHTMLTableRow(TxLabels, sizeof(TxLabels) / sizeof(std::string));
 
-    std::set<COutPoint> prevOuts;
+    std::set<COutPoint> PrevOuts;
     /*
     CScript AddressScript;
     AddressScript.SetDestination(Address.Get());
@@ -400,7 +401,7 @@ std::string AddressToString(const CTxDestination& dest)
     {
         std::vector<CDiskTxPos> Txs;
         paddressmap->GetTxs(Txs, AddressScript.GetID());
-        for (const CDiskTxPos& pos : Txs)
+        BOOST_FOREACH (const CDiskTxPos& pos, Txs)
         {
             CTransaction tx;
             CBlock block;
@@ -417,12 +418,12 @@ std::string AddressToString(const CTxDestination& dest)
         }
     }
     */
-    txContent += "</table>";
+    TxContent += "</table>";
 
-    std::string content;
-    content += "<h1>" + _("Transactions to/from") + "&nbsp;<span>" + EncodeDestination(dest) + "</span></h1>";
-    content += txContent;
-    return content;
+    std::string Content;
+    Content += "<h1>" + _("Transactions to/from") + "&nbsp;<span>" + Address.ToString() + "</span></h1>";
+    Content += TxContent;
+    return Content;
 }
 
 BlockExplorer::BlockExplorer(QWidget* parent) : QMainWindow(parent),
@@ -433,7 +434,7 @@ BlockExplorer::BlockExplorer(QWidget* parent) : QMainWindow(parent),
     ui->setupUi(this);
 
     this->setStyleSheet(GUIUtil::loadStyleSheet());
-    
+
     connect(ui->pushSearch, SIGNAL(released()), this, SLOT(onSearch()));
     connect(ui->content, SIGNAL(linkActivated(const QString&)), this, SLOT(goTo(const QString&)));
     connect(ui->back, SIGNAL(released()), this, SLOT(back()));
@@ -472,8 +473,8 @@ void BlockExplorer::showEvent(QShowEvent*)
         updateNavButtons();
 
         if (!GetBoolArg("-txindex", true)) {
-            QString Warning = tr("Not all transactions will be shown. To view all transactions you need to set txindex=1 in the configuration file (phore.conf).");
-            QMessageBox::warning(this, "Phore Core Blockchain Explorer", Warning, QMessageBox::Ok);
+            QString Warning = tr("Not all transactions will be shown. To view all transactions you need to set txindex=1 in the configuration file (retrex.conf).");
+            QMessageBox::warning(this, "Retrex Core Blockchain Explorer", Warning, QMessageBox::Ok);
         }
     }
 }
@@ -512,12 +513,13 @@ bool BlockExplorer::switchTo(const QString& query)
     }
 
     // If the query is not an integer, nor a block hash, nor a transaction hash, assume an address
-    if (IsValidDestinationString(query.toUtf8().constData())) {
-        CTxDestination dest = DecodeDestination(query.toUtf8().constData());
-        std::string content = EncodeDestination(dest);
-        if (content.empty())
+    CBitcoinAddress Address;
+    Address.SetString(query.toUtf8().constData());
+    if (Address.IsValid()) {
+        std::string Content = AddressToString(Address);
+        if (Content.empty())
             return false;
-        setContent(content);
+        setContent(Content);
         return true;
     }
 
@@ -548,7 +550,7 @@ void BlockExplorer::setBlock(CBlockIndex* pBlock)
 
 void BlockExplorer::setContent(const std::string& Content)
 {
-    QString CSS = "body {font-size:12px; color:#f8f6f6; bgcolor:#132232;}\n a, span { font-family: monospace; }\n span.addr {color:#005437; font-weight: bold;}\n table tr td {padding: 3px; border: 1px solid black; background-color: #132232;}\n td.d0 {font-weight: bold; color:#f8f6f6;}\n h2, h3 { white-space:nowrap; color:#FFFFFF;}\n a { color:#00d188; text-decoration:none; }\n a.nav {color:#49545e;}\n";
+    QString CSS = "body {font-size:12px; color:#f8f6f6; bgcolor:#2f2f2f;}\n a, span { font-family: monospace; }\n span.addr {color:#2f2f2f; font-weight: bold;}\n table tr td {padding: 3px; border: 1px solid black; background-color: #2F2F2F;}\n td.d0 {font-weight: bold; color:#f8f6f6;}\n h2, h3 { white-space:nowrap; color:#2F2F2F;}\n a { color:#7AA9F7; text-decoration:none; }\n a.nav {color:#2F2F2F;}\n";
     QString FullContent = "<html><head><style type=\"text/css\">" + CSS + "</style></head>" + "<body>" + Content.c_str() + "</body></html>";
     // printf(FullContent.toUtf8());
 

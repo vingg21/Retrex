@@ -14,8 +14,6 @@ class QMenu;
 class QWidget;
 QT_END_NAMESPACE
 
-void ForceActivation();
-
 /** Macintosh-specific dock icon handler.
  */
 class MacDockIconHandler : public QObject
