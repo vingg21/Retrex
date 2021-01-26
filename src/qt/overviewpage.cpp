@@ -1,7 +1,7 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2017 The PIVX developers
-// Copyright (c) 2021 The Retrex developers
+// Copyright (c) 2017-2019 The Phore Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -26,9 +26,11 @@
 #include <QSettings>
 #include <QTimer>
 
-#define DECORATION_SIZE 48
+#define DECORATION_SIZE 44
 #define ICON_OFFSET 16
 #define NUM_ITEMS 9
+
+extern CWallet* pwalletMain;
 
 extern CWallet* pwalletMain;
 
@@ -36,7 +38,7 @@ class TxViewDelegate : public QAbstractItemDelegate
 {
     Q_OBJECT
 public:
-    TxViewDelegate() : QAbstractItemDelegate(), unit(BitcoinUnits::REEX)
+    TxViewDelegate() : QAbstractItemDelegate(), unit(BitcoinUnits::PHR)
     {
     }
 
@@ -47,7 +49,7 @@ public:
         QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
         QRect mainRect = option.rect;
         mainRect.moveLeft(ICON_OFFSET);
-        QRect decorationRect(mainRect.topLeft(), QSize(DECORATION_SIZE, DECORATION_SIZE));
+        QRect decorationRect(mainRect.topLeft(), QSize(DECORATION_SIZE - 10, DECORATION_SIZE - 10));
         int xspace = DECORATION_SIZE + 8;
         int ypad = 6;
         int halfheight = (mainRect.height() - 2 * ypad) / 2;
@@ -104,7 +106,7 @@ public:
         }
         painter->drawText(amountRect, Qt::AlignRight | Qt::AlignVCenter, amountText);
 
-        painter->setPen(COLOR_BLACK);
+        painter->setPen(foreground);
         painter->drawText(amountRect, Qt::AlignLeft | Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
 
         painter->restore();
@@ -147,7 +149,7 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
 
     // init "out of sync" warning labels
-//    ui->labelWalletStatus->setText("(" + tr("out of sync") + ")");
+    ui->labelWalletStatus->setText("(" + tr("out of sync") + ")");
     ui->labelTransactionsStatus->setText("(" + tr("out of sync") + ")");
 
     // start with displaying the "out of sync" warnings
@@ -165,7 +167,7 @@ OverviewPage::~OverviewPage()
     delete ui;
 }
 
-void OverviewPage::getPercentage(CAmount nUnlockedBalance, CAmount nZerocoinBalance, QString& sREEXPercentage, QString& szREEXPercentage)
+void OverviewPage::getPercentage(CAmount nUnlockedBalance, CAmount nZerocoinBalance, QString& sPHRPercentage, QString& szPHRPercentage)
 {
     int nPrecision = 2;
     double dzPercentage = 0.0;
@@ -184,8 +186,8 @@ void OverviewPage::getPercentage(CAmount nUnlockedBalance, CAmount nZerocoinBala
 
     double dPercentage = 100.0 - dzPercentage;
     
-    szREEXPercentage = "(" + QLocale(QLocale::system()).toString(dzPercentage, 'f', nPrecision) + " %)";
-    sREEXPercentage = "(" + QLocale(QLocale::system()).toString(dPercentage, 'f', nPrecision) + " %)";
+    szPHRPercentage = "(" + QLocale(QLocale::system()).toString(dzPercentage, 'f', nPrecision) + " %)";
+    sPHRPercentage = "(" + QLocale(QLocale::system()).toString(dPercentage, 'f', nPrecision) + " %)";
     
 }
 
@@ -209,104 +211,101 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
         nLockedBalance = pwalletMain->GetLockedCoins();
         nWatchOnlyLockedBalance = pwalletMain->GetLockedWatchOnlyBalance();
     }
-    // REEX Balance
+    // PHR Balance
     CAmount nTotalBalance = balance + unconfirmedBalance;
-    CAmount reexAvailableBalance = balance - immatureBalance - nLockedBalance;
+    CAmount phrAvailableBalance = balance - immatureBalance - nLockedBalance;
     CAmount nTotalWatchBalance = watchOnlyBalance + watchUnconfBalance + watchImmatureBalance;    
     CAmount nUnlockedBalance = nTotalBalance - nLockedBalance;
-    // zREEX Balance
-    CAmount matureZerocoinBalance = zerocoinBalance - immatureZerocoinBalance;
+    // zPHR Balance
+    CAmount matureZerocoinBalance = zerocoinBalance - unconfirmedZerocoinBalance - immatureZerocoinBalance;
     // Percentages
     QString szPercentage = "";
     QString sPercentage = "";
     getPercentage(nUnlockedBalance, zerocoinBalance, sPercentage, szPercentage);
     // Combined balances
-    CAmount availableTotalBalance = reexAvailableBalance + matureZerocoinBalance;
+    CAmount availableTotalBalance = phrAvailableBalance + matureZerocoinBalance;
     CAmount sumTotalBalance = nTotalBalance + zerocoinBalance;
 
-    // REEX labels
-    ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, reexAvailableBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, unconfirmedBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, immatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelLockedBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nLockedBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nTotalBalance, false, BitcoinUnits::separatorAlways));
+    // PHR labels
+    ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, phrAvailableBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, unconfirmedBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelImmature->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, immatureBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelLockedBalance->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, nLockedBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelTotal->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, nTotalBalance, false, BitcoinUnits::separatorAlways));
 
     // Watchonly labels
-    ui->labelWatchAvailable->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchOnlyBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchPending->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchUnconfBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchImmatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchLocked->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nWatchOnlyLockedBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nTotalWatchBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchAvailable->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, watchOnlyBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchPending->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, watchUnconfBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchImmature->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, watchImmatureBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchLocked->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, nWatchOnlyLockedBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchTotal->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, nTotalWatchBalance, false, BitcoinUnits::separatorAlways));
 
-/*
-    // zREEX labels
-    ui->labelzBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, zerocoinBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelzBalanceUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, unconfirmedZerocoinBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelzBalanceMature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, matureZerocoinBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelzBalanceImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, immatureZerocoinBalance, false, BitcoinUnits::separatorAlways));
+    // zPHR labels
+    ui->labelzBalance->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, zerocoinBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelzBalanceUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, unconfirmedZerocoinBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelzBalanceMature->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, matureZerocoinBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelzBalanceImmature->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, immatureZerocoinBalance, false, BitcoinUnits::separatorAlways));
 
     // Combined labels
-    ui->labelBalancez->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, availableTotalBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotalz->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, sumTotalBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelBalancez->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, availableTotalBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelTotalz->setText(BitcoinUnits::floorHtmlWithUnitComma(nDisplayUnit, sumTotalBalance, false, BitcoinUnits::separatorAlways));
 
     // Percentage labels
-    ui->labelREEXPercent->setText(sPercentage);
-    ui->labelzREEXPercent->setText(szPercentage);
+    ui->labelPHRPercent->setText(sPercentage);
+    ui->labelzPHRPercent->setText(szPercentage);
 
     // Adjust bubble-help according to AutoMint settings
-    QString automintHelp = tr("Current percentage of zREEX.\nIf AutoMint is enabled this percentage will settle around the configured AutoMint percentage (default = 10%).\n");
-    bool fEnableZeromint = GetBoolArg("-enablezeromint", true);
+    QString automintHelp = tr("Current percentage of zPHR.\nIf AutoMint is enabled this percentage will settle around the configured AutoMint percentage (default = 10%).\n");
+    bool fEnableZeromint = GetBoolArg("-enablezeromint", false);
     int nZeromintPercentage = GetArg("-zeromintpercentage", 10);
     if (fEnableZeromint) {
         automintHelp += tr("AutoMint is currently enabled and set to ") + QString::number(nZeromintPercentage) + "%.\n";
-        automintHelp += tr("To disable AutoMint add 'enablezeromint=0' in retrex.conf.");
+        automintHelp += tr("To disable AutoMint add 'enablezeromint=0' in phore.conf.");
     }
     else {
-        automintHelp += tr("AutoMint is currently disabled.\nTo enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in retrex.conf");
+        automintHelp += tr("AutoMint is currently disabled.\nTo enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in phore.conf");
     }
-*/
 
     // Only show most balances if they are non-zero for the sake of simplicity
     QSettings settings;
     bool settingShowAllBalances = !settings.value("fHideZeroBalances").toBool();
     bool showSumAvailable = settingShowAllBalances || sumTotalBalance != availableTotalBalance;
-    // ui->labelBalanceTextz->setVisible(showSumAvailable);
-    // ui->labelBalancez->setVisible(showSumAvailable);
-    bool showREEXAvailable = settingShowAllBalances || reexAvailableBalance != nTotalBalance;
-    bool showWatchOnlyREEXAvailable = watchOnlyBalance != nTotalWatchBalance;
-    bool showREEXPending = settingShowAllBalances || unconfirmedBalance != 0;
-    bool showWatchOnlyREEXPending = watchUnconfBalance != 0;
-    bool showREEXLocked = settingShowAllBalances || nLockedBalance != 0;
-    bool showWatchOnlyREEXLocked = nWatchOnlyLockedBalance != 0;
+    ui->labelBalanceTextz->setVisible(showSumAvailable);
+    ui->labelBalancez->setVisible(showSumAvailable);
+    bool showPHRAvailable = settingShowAllBalances || phrAvailableBalance != nTotalBalance;
+    bool showWatchOnlyPHRAvailable = watchOnlyBalance != nTotalWatchBalance;
+    bool showPHRPending = settingShowAllBalances || unconfirmedBalance != 0;
+    bool showWatchOnlyPHRPending = watchUnconfBalance != 0;
+    bool showPHRLocked = settingShowAllBalances || nLockedBalance != 0;
+    bool showWatchOnlyPHRLocked = nWatchOnlyLockedBalance != 0;
     bool showImmature = settingShowAllBalances || immatureBalance != 0;
     bool showWatchOnlyImmature = watchImmatureBalance != 0;
     bool showWatchOnly = nTotalWatchBalance != 0;
-    ui->labelBalance->setVisible(showREEXAvailable || showWatchOnlyREEXAvailable);
-    ui->labelBalanceText->setVisible(showREEXAvailable || showWatchOnlyREEXAvailable);
-    ui->labelWatchAvailable->setVisible(showREEXAvailable && showWatchOnly);
-    ui->labelUnconfirmed->setVisible(showREEXPending || showWatchOnlyREEXPending);
-    ui->labelPendingText->setVisible(showREEXPending || showWatchOnlyREEXPending);
-    ui->labelWatchPending->setVisible(showREEXPending && showWatchOnly);
-    ui->labelLockedBalance->setVisible(showREEXLocked || showWatchOnlyREEXLocked);
-    ui->labelLockedBalanceText->setVisible(showREEXLocked || showWatchOnlyREEXLocked);
-    ui->labelWatchLocked->setVisible(showREEXLocked && showWatchOnly);
+    ui->labelBalance->setVisible(showPHRAvailable || showWatchOnlyPHRAvailable);
+    ui->labelBalanceText->setVisible(showPHRAvailable || showWatchOnlyPHRAvailable);
+    ui->labelWatchAvailable->setVisible(showPHRAvailable && showWatchOnly);
+    ui->labelUnconfirmed->setVisible(showPHRPending || showWatchOnlyPHRPending);
+    ui->labelPendingText->setVisible(showPHRPending || showWatchOnlyPHRPending);
+    ui->labelWatchPending->setVisible(showPHRPending && showWatchOnly);
+    ui->labelLockedBalance->setVisible(showPHRLocked || showWatchOnlyPHRLocked);
+    ui->labelLockedBalanceText->setVisible(showPHRLocked || showWatchOnlyPHRLocked);
+    ui->labelWatchLocked->setVisible(showPHRLocked && showWatchOnly);
     ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature); // for symmetry reasons also show immature label when the watch-only one is shown
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelWatchImmature->setVisible(showImmature && showWatchOnly); // show watch-only immature balance
-    bool showzREEXAvailable = settingShowAllBalances || zerocoinBalance != matureZerocoinBalance;
-    bool showzREEXUnconfirmed = settingShowAllBalances || unconfirmedZerocoinBalance != 0;
-    bool showzREEXImmature = settingShowAllBalances || immatureZerocoinBalance != 0;
-    /*
-    ui->labelzBalanceMature->setVisible(showzREEXAvailable);
-    ui->labelzBalanceMatureText->setVisible(showzREEXAvailable);
-    ui->labelzBalanceUnconfirmed->setVisible(showzREEXUnconfirmed);
-    ui->labelzBalanceUnconfirmedText->setVisible(showzREEXUnconfirmed);
-    ui->labelzBalanceImmature->setVisible(showzREEXImmature);
-    ui->labelzBalanceImmatureText->setVisible(showzREEXImmature);
+    bool showzPHRAvailable = settingShowAllBalances || zerocoinBalance != matureZerocoinBalance;
+    bool showzPHRUnconfirmed = settingShowAllBalances || unconfirmedZerocoinBalance != 0;
+    bool showzPHRImmature = settingShowAllBalances || immatureZerocoinBalance != 0;
+    ui->labelzBalanceMature->setVisible(showzPHRAvailable);
+    ui->labelzBalanceMatureText->setVisible(showzPHRAvailable);
+    ui->labelzBalanceUnconfirmed->setVisible(showzPHRUnconfirmed);
+    ui->labelzBalanceUnconfirmedText->setVisible(showzPHRUnconfirmed);
+    ui->labelzBalanceImmature->setVisible(showzPHRImmature);
+    ui->labelzBalanceImmatureText->setVisible(showzPHRImmature);
     bool showPercentages = ! (zerocoinBalance == 0 && nTotalBalance == 0);
-    ui->labelREEXPercent->setVisible(showPercentages);
-    ui->labelzREEXPercent->setVisible(showPercentages);
-*/
+    ui->labelPHRPercent->setVisible(showPercentages);
+    ui->labelzPHRPercent->setVisible(showPercentages);
+
     static int cachedTxLocks = 0;
 
     if (cachedTxLocks != nCompleteTXLocks) {
@@ -376,7 +375,7 @@ void OverviewPage::setWalletModel(WalletModel* model)
         connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyLabels(bool)));
     }
 
-    // update the display unit, to not use the default ("REEX")
+    // update the display unit, to not use the default ("PHR")
     updateDisplayUnit();
 }
 
@@ -403,6 +402,6 @@ void OverviewPage::updateAlerts(const QString& warnings)
 
 void OverviewPage::showOutOfSyncWarning(bool fShow)
 {
-//    ui->labelWalletStatus->setVisible(fShow);
+    ui->labelWalletStatus->setVisible(fShow);
     ui->labelTransactionsStatus->setVisible(fShow);
 }

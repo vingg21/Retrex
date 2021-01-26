@@ -1,7 +1,6 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2017 The PIVX developers
-// Copyright (c) 2021 The Retrex developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,6 +10,7 @@
 
 #include <QSettings>
 #include <QStringList>
+#include <QLocale>
 
 BitcoinUnits::BitcoinUnits(QObject* parent) : QAbstractListModel(parent),
                                               unitlist(availableUnits())
@@ -20,18 +20,18 @@ BitcoinUnits::BitcoinUnits(QObject* parent) : QAbstractListModel(parent),
 QList<BitcoinUnits::Unit> BitcoinUnits::availableUnits()
 {
     QList<BitcoinUnits::Unit> unitlist;
-    unitlist.append(REEX);
-    unitlist.append(mREEX);
-    unitlist.append(uREEX);
+    unitlist.append(PHR);
+    unitlist.append(mPHR);
+    unitlist.append(uPHR);
     return unitlist;
 }
 
 bool BitcoinUnits::valid(int unit)
 {
     switch (unit) {
-    case REEX:
-    case mREEX:
-    case uREEX:
+    case PHR:
+    case mPHR:
+    case uPHR:
         return true;
     default:
         return false;
@@ -41,12 +41,12 @@ bool BitcoinUnits::valid(int unit)
 QString BitcoinUnits::id(int unit)
 {
     switch (unit) {
-    case REEX:
-        return QString("retrex");
-    case mREEX:
-        return QString("mretrex");
-    case uREEX:
-        return QString::fromUtf8("uretrex");
+    case PHR:
+        return QString("phore");
+    case mPHR:
+        return QString("mphore");
+    case uPHR:
+        return QString::fromUtf8("uphore");
     default:
         return QString("???");
     }
@@ -56,23 +56,23 @@ QString BitcoinUnits::name(int unit)
 {
     if (Params().NetworkID() == CBaseChainParams::MAIN) {
         switch (unit) {
-        case REEX:
-            return QString("REEX");
-        case mREEX:
-            return QString("mREEX");
-        case uREEX:
-            return QString::fromUtf8("μREEX");
+        case PHR:
+            return QString("PHR");
+        case mPHR:
+            return QString("mPHR");
+        case uPHR:
+            return QString::fromUtf8("μPHR");
         default:
             return QString("???");
         }
     } else {
         switch (unit) {
-        case REEX:
-            return QString("tREEX");
-        case mREEX:
-            return QString("mtREEX");
-        case uREEX:
-            return QString::fromUtf8("μtREEX");
+        case PHR:
+            return QString("tPHR");
+        case mPHR:
+            return QString("mtPHR");
+        case uPHR:
+            return QString::fromUtf8("μtPHR");
         default:
             return QString("???");
         }
@@ -83,23 +83,23 @@ QString BitcoinUnits::description(int unit)
 {
     if (Params().NetworkID() == CBaseChainParams::MAIN) {
         switch (unit) {
-        case REEX:
-            return QString("REEX");
-        case mREEX:
-            return QString("Milli-REEX (1 / 1" THIN_SP_UTF8 "000)");
-        case uREEX:
-            return QString("Micro-REEX (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+        case PHR:
+            return QString("PHR");
+        case mPHR:
+            return QString("Milli-PHR (1 / 1" THIN_SP_UTF8 "000)");
+        case uPHR:
+            return QString("Micro-PHR (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
         default:
             return QString("???");
         }
     } else {
         switch (unit) {
-        case REEX:
-            return QString("TestREEXs");
-        case mREEX:
-            return QString("Milli-TestREEX (1 / 1" THIN_SP_UTF8 "000)");
-        case uREEX:
-            return QString("Micro-TestREEX (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+        case PHR:
+            return QString("TestPHRs");
+        case mPHR:
+            return QString("Milli-TestPHR (1 / 1" THIN_SP_UTF8 "000)");
+        case uPHR:
+            return QString("Micro-TestPHR (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
         default:
             return QString("???");
         }
@@ -109,26 +109,26 @@ QString BitcoinUnits::description(int unit)
 qint64 BitcoinUnits::factor(int unit)
 {
     switch (unit) {
-    case REEX:
-        return COIN;
-    case mREEX:
-        return COIN / 1000;
-    case uREEX:
-        return COIN / 1000000;
+    case PHR:
+        return 100000000;
+    case mPHR:
+        return 100000;
+    case uPHR:
+        return 100;
     default:
-        return COIN;
+        return 100000000;
     }
 }
 
 int BitcoinUnits::decimals(int unit)
 {
     switch (unit) {
-    case REEX:
-        return 6;
-    case mREEX:
-        return 3;
-    case uREEX:
-        return 0;
+    case PHR:
+        return 8;
+    case mPHR:
+        return 5;
+    case uPHR:
+        return 2;
     default:
         return 0;
     }
@@ -207,12 +207,43 @@ QString BitcoinUnits::floorWithUnit(int unit, const CAmount& amount, bool plussi
     return result + QString(" ") + name(unit);
 }
 
+QString BitcoinUnits::floorWithOutUnit(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
+{
+    QSettings settings;
+    int digits = settings.value("digits").toInt();
+
+    QString result = format(unit, amount, plussign, separators);
+    if (decimals(unit) > digits) result.chop(decimals(unit) - digits);
+
+    return result;
+}
+
 QString BitcoinUnits::floorHtmlWithUnit(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
 {
     QString str(floorWithUnit(unit, amount, plussign, separators));
     str.replace(QChar(THIN_SP_CP), QString(THIN_SP_HTML));
     return QString("<span style='white-space: nowrap;'>%1</span>").arg(str);
 }
+
+QString BitcoinUnits::floorHtmlWithUnitComma(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
+{
+    // QString local = QLocale::languageToString(QLocale::system().language());
+
+    QSettings settings;
+    QString local = settings.value("language", "").toString();
+
+    QStringList list;
+    list << "en" << "en_US";
+
+    QString str(floorWithOutUnit(unit, amount, plussign, separators));
+
+    if(list.contains(local)){
+        str.replace(QChar(THIN_SP_CP), QString(","));
+    }
+    
+    return QString("<div style='white-space: nowrap;'>%1</div>").arg(str) + QString(" ") + name(unit);
+}
+
 
 bool BitcoinUnits::parse(int unit, const QString& value, CAmount* val_out)
 {

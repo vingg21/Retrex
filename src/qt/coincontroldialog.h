@@ -42,7 +42,6 @@ public:
     static void updateLabels(WalletModel*, QDialog*);
     static QString getPriorityLabel(double dPriority, double mempoolEstimatePriority);
 
-    static CAmount payFee;
     static QList<CAmount> payAmounts;
     static CCoinControl* coinControl;
     static int nSplitBlockDummy;

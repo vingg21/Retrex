@@ -1,8 +1,9 @@
-// Copyright (c) 2011-2013 The Bitcoin developers
+    // Copyright (c) 2011-2013 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "walletframe.h"
+#include "rpcconsole.h"
 
 #include "bitcoingui.h"
 #include "walletview.h"
@@ -41,7 +42,7 @@ bool WalletFrame::addWallet(const QString& name, WalletModel* walletModel)
     if (!gui || !clientModel || !walletModel || mapWalletViews.count(name) > 0)
         return false;
 
-    WalletView* walletView = new WalletView(this);
+    WalletView* walletView = new WalletView(walletStack);
     walletView->setBitcoinGUI(gui);
     walletView->setClientModel(clientModel);
     walletView->setWalletModel(walletModel);
@@ -139,22 +140,25 @@ void WalletFrame::gotoReceiveCoinsPage()
         i.value()->gotoReceiveCoinsPage();
 }
 
-#ifdef ENABLE_ZEROCOIN
-/*
 void WalletFrame::gotoPrivacyPage()
 {
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoPrivacyPage();
 }
-*/
-#endif
 
 void WalletFrame::gotoSendCoinsPage(QString addr)
 {
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoSendCoinsPage(addr);
+}
+
+void WalletFrame::gotoProposalPage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoProposalPage();
 }
 
 void WalletFrame::gotoSignMessageTab(QString addr)
@@ -215,21 +219,11 @@ void WalletFrame::changePassphrase()
         walletView->changePassphrase();
 }
 
-void WalletFrame::unlockWallet(bool setContext)
-{
-    if (setContext) {
-        unlockWallet(AskPassphraseDialog::Context::Unlock_Full);
-    }
-    else {
-        unlockWallet(AskPassphraseDialog::Context::Unlock_Menu);
-    }
-}
-
-void WalletFrame::unlockWallet(AskPassphraseDialog::Context context)
+void WalletFrame::unlockWallet()
 {
     WalletView* walletView = currentWalletView();
     if (walletView)
-        walletView->unlockWallet(context);
+        walletView->unlockWallet();
 }
 
 void WalletFrame::lockWallet()

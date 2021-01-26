@@ -128,8 +128,6 @@ QVariant BanTableModel::data(const QModelIndex &index, int role) const
             date = date.addSecs(rec->banEntry.nBanUntil);
             return date.toString(Qt::SystemLocaleLongDate);
         }
-    } else if (role == Qt::ForegroundRole) {
-        return COLOR_BLACK;
     }
 
     return QVariant();

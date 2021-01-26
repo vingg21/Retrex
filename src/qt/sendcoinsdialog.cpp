@@ -1,7 +1,6 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2017 The PIVX developers
-// Copyright (c) 2021 The Retrex developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -19,10 +18,10 @@
 #include "walletmodel.h"
 
 #include "base58.h"
-#include "coincontrol.h"
+#include "wallet/coincontrol.h"
 #include "ui_interface.h"
 #include "utilmoneystr.h"
-#include "wallet.h"
+#include "wallet/wallet.h"
 
 #include <QMessageBox>
 #include <QScrollBar>
@@ -42,6 +41,8 @@ SendCoinsDialog::SendCoinsDialog(QWidget* parent) : QDialog(parent),
     ui->addButton->setIcon(QIcon());
     ui->clearButton->setIcon(QIcon());
     ui->sendButton->setIcon(QIcon());
+    ui->lineEditCoinControlChange->setAttribute(Qt::WA_MacShowFocusRect, 0);
+    ui->splitBlockLineEdit->setAttribute(Qt::WA_MacShowFocusRect, 0);    
 #endif
 
     GUIUtil::setupAddressWidget(ui->lineEditCoinControlChange, this);
@@ -60,7 +61,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget* parent) : QDialog(parent),
     connect(ui->splitBlockCheckBox, SIGNAL(stateChanged(int)), this, SLOT(splitBlockChecked(int)));
     connect(ui->splitBlockLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(splitBlockLineEditChanged(const QString&)));
 
-    // Retrex specific
+    // Phore specific
     QSettings settings;
     if (!settings.contains("bUseObfuScation"))
         settings.setValue("bUseObfuScation", false);
@@ -135,7 +136,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget* parent) : QDialog(parent),
     ui->customFee->setValue(settings.value("nTransactionFee").toLongLong());
     ui->checkBoxMinimumFee->setChecked(settings.value("fPayOnlyMinFee").toBool());
     ui->checkBoxFreeTx->setChecked(settings.value("fSendFreeTransactions").toBool());
-    ui->checkzREEX->hide();
+    ui->checkzPHR->hide();
     minimizeFeeSection(settings.value("fFeeSectionMinimized").toBool());
 }
 
@@ -173,7 +174,6 @@ void SendCoinsDialog::setModel(WalletModel* model)
         connect(model->getOptionsModel(), SIGNAL(coinControlFeaturesChanged(bool)), this, SLOT(coinControlFeatureChanged(bool)));
         ui->frameCoinControl->setVisible(model->getOptionsModel()->getCoinControlFeatures());
         coinControlUpdateLabels();
-        updateFeeMinimizedLabel();
 
         // fee section
         connect(ui->sliderSmartFee, SIGNAL(valueChanged(int)), this, SLOT(updateSmartFeeLabel()));
@@ -197,7 +197,6 @@ void SendCoinsDialog::setModel(WalletModel* model)
         updateMinFeeLabel();
         updateSmartFeeLabel();
         updateGlobalFeeVariables();
-        updateFeeMinimizedLabel();
     }
 }
 
@@ -227,7 +226,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         SendCoinsEntry* entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
 
         //UTXO splitter - address should be our own
-        CBitcoinAddress address = entry->getValue().address.toStdString();
+        CTxDestination address = DecodeDestination(entry->getValue().address.toStdString());
         if (!model->isMine(address) && ui->splitBlockCheckBox->checkState() == Qt::Checked) {
             CoinControlDialog::coinControl->fSplitBlock = false;
             ui->splitBlockCheckBox->setCheckState(Qt::Unchecked);
@@ -272,7 +271,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     if (ui->checkSwiftTX->isChecked()) {
         recipients[0].useSwiftTX = true;
         strFunds += " ";
-        strFunds += tr("using SwiftTX");
+        strFunds += tr("using SwiftX");
     } else {
         recipients[0].useSwiftTX = false;
     }
@@ -324,7 +323,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     // will call relock
     WalletModel::EncryptionStatus encStatus = model->getEncryptionStatus();
     if (encStatus == model->Locked || encStatus == model->UnlockedForAnonymizationOnly) {
-        WalletModel::UnlockContext ctx(model->requestUnlock(AskPassphraseDialog::Context::Send_REEX, true));
+        WalletModel::UnlockContext ctx(model->requestUnlock(true));
         if (!ctx.isValid()) {
             // Unlock wallet was cancelled
             fNewRecipientAllowed = true;
@@ -362,7 +361,7 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
 
     if (txFee > 0) {
         // append fee string if a fee is required
-        questionString.append("<hr /><span style='color:#ee2f77;'>");
+        questionString.append("<hr /><span style='color:#aa0000;'>");
         questionString.append(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), txFee));
         questionString.append("</span> ");
         questionString.append(tr("are added as transaction fee"));
@@ -421,7 +420,6 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
         accept();
         CoinControlDialog::coinControl->UnSelectAll();
         coinControlUpdateLabels();
-        updateFeeMinimizedLabel();
     }
     fNewRecipientAllowed = true;
 }
@@ -472,7 +470,6 @@ void SendCoinsDialog::updateTabsAndLabels()
 {
     setupTabChain(0);
     coinControlUpdateLabels();
-    updateFeeMinimizedLabel();
 }
 
 void SendCoinsDialog::removeEntry(SendCoinsEntry* entry)
@@ -580,7 +577,6 @@ void SendCoinsDialog::updateDisplayUnit()
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     updateMinFeeLabel();
     updateSmartFeeLabel();
-    updateFeeMinimizedLabel();       
 }
 
 void SendCoinsDialog::updateSwiftTX()
@@ -589,7 +585,6 @@ void SendCoinsDialog::updateSwiftTX()
     settings.setValue("bUseSwiftTX", ui->checkSwiftTX->isChecked());
     CoinControlDialog::coinControl->useSwiftTX = ui->checkSwiftTX->isChecked();
     coinControlUpdateLabels();
-    updateFeeMinimizedLabel();
 }
 
 void SendCoinsDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn& sendCoinsReturn, const QString& msgArg, bool fPrepare)
@@ -646,7 +641,7 @@ void SendCoinsDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn&
 
     // Unlock wallet if it wasn't fully unlocked already
     if(fAskForUnlock) {
-        model->requestUnlock(AskPassphraseDialog::Context::Unlock_Full, false);
+        model->requestUnlock(false);
         if(model->getEncryptionStatus () != WalletModel::Unlocked) {
             msgParams.first = tr("Error: The wallet was unlocked only to anonymize coins. Unlock canceled.");
         }
@@ -721,28 +716,11 @@ void SendCoinsDialog::updateFeeMinimizedLabel()
     if (!model || !model->getOptionsModel())
         return;
 
-    CAmount nMinTxFee = 0;
-    CAmount nCustomFee = ui->customFee->value();
-
-    if (!ui->radioSmartFee->isChecked() && !ui->radioCustomPerKilobyte->isChecked()) {
-        nMinTxFee = max(nCustomFee, nMinTxFee);
-    } 
-
-    if (ui->checkSwiftTX->isChecked()) {
-        nMinTxFee = max(Params().SwiftTxMinFee(), nMinTxFee);
-    }
-    
-    if (CoinControlDialog::coinControl->HasSelected() && CoinControlDialog::payFee > nMinTxFee) {
-        ui->labelFeeMinimized->setText(ui->labelCoinControlFee->text());          // show best estimate
-    } else if (nMinTxFee > 0) {      // if there is a minTxFee, we show it instead of the /kB value
-        ui->labelFeeMinimized->setText(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), nMinTxFee));
-    } else {
-        if (ui->radioSmartFee->isChecked()) {
-            ui->labelFeeMinimized->setText(ui->labelSmartFee->text());
-        } else {
-            ui->labelFeeMinimized->setText(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), ui->customFee->value()) +
+    if (ui->radioSmartFee->isChecked())
+        ui->labelFeeMinimized->setText(ui->labelSmartFee->text());
+    else {
+        ui->labelFeeMinimized->setText(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), ui->customFee->value()) +
                                        ((ui->radioCustomPerKilobyte->isChecked()) ? "/kB" : ""));
-        }
     }
 }
 
@@ -783,7 +761,6 @@ void SendCoinsDialog::splitBlockChecked(int state)
         ui->labelBlockSizeText->setEnabled((state == Qt::Checked));
         ui->labelBlockSize->setEnabled((state == Qt::Checked));
         coinControlUpdateLabels();
-        updateFeeMinimizedLabel();
     }
 }
 
@@ -809,7 +786,6 @@ void SendCoinsDialog::splitBlockLineEditChanged(const QString& text)
     //update labels
     ui->labelBlockSize->setText(QString::fromStdString(FormatMoney(nSize)));
     coinControlUpdateLabels();
-    updateFeeMinimizedLabel();
 }
 
 // Coin Control: copy label "Quantity" to clipboard
@@ -868,10 +844,8 @@ void SendCoinsDialog::coinControlFeatureChanged(bool checked)
     if (!checked && model) // coin control features disabled
         CoinControlDialog::coinControl->SetNull();
 
-    if (checked) {
+    if (checked)
         coinControlUpdateLabels();
-        updateFeeMinimizedLabel();
-    }
 }
 
 // Coin Control: button inputs -> show actual coin control dialog
@@ -881,7 +855,6 @@ void SendCoinsDialog::coinControlButtonClicked()
     dlg.setModel(model);
     dlg.exec();
     coinControlUpdateLabels();
-    updateFeeMinimizedLabel();
 }
 
 // Coin Control: checkbox custom change address
@@ -903,22 +876,27 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
     if (model && model->getAddressTableModel()) {
         // Default to no change address until verified
         CoinControlDialog::coinControl->destChange = CNoDestination();
-        ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color: #ee2f77;}");
-
-        CBitcoinAddress addr = CBitcoinAddress(text.toStdString());
+        ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:red;}");
 
         if (text.isEmpty()) // Nothing entered
         {
             ui->labelCoinControlChangeLabel->setText("");
-        } else if (!addr.IsValid()) // Invalid address
+        } else if (!IsValidDestinationString(text.toStdString())) // Invalid address
         {
-            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Retrex address"));
+            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Phore address"));
         } else // Valid address
         {
+            CTxDestination addr = DecodeDestination(text.toStdString());
+            CKeyID* keyid = boost::get<CKeyID>(&addr);
+
+            if (!keyid) {
+                ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Phore address"));
+                return;
+            }
+            
             CPubKey pubkey;
-            CKeyID keyid;
-            addr.GetKeyID(keyid);
-            if (!model->getPubKey(keyid, pubkey)) // Unknown change address
+            
+            if (!model->getPubKey(*keyid, pubkey)) // Unknown change address
             {
                 ui->labelCoinControlChangeLabel->setText(tr("Warning: Unknown change address"));
             } else // Known change address
@@ -932,7 +910,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
                 else
                     ui->labelCoinControlChangeLabel->setText(tr("(no label)"));
 
-                CoinControlDialog::coinControl->destChange = addr.Get();
+                CoinControlDialog::coinControl->destChange = addr;
             }
         }
     }

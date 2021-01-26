@@ -4,14 +4,13 @@
 
 #include "recentrequeststablemodel.h"
 
-#include "guiconstants.h"
 #include "bitcoinunits.h"
 #include "clientversion.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
 #include "streams.h"
 
-#include <boost/foreach.hpp>
+
 
 RecentRequestsTableModel::RecentRequestsTableModel(CWallet* wallet, WalletModel* parent) : walletModel(parent)
 {
@@ -21,7 +20,7 @@ RecentRequestsTableModel::RecentRequestsTableModel(CWallet* wallet, WalletModel*
     // Load entries from wallet
     std::vector<std::string> vReceiveRequests;
     parent->loadReceiveRequests(vReceiveRequests);
-    BOOST_FOREACH (const std::string& request, vReceiveRequests)
+    for (const std::string& request : vReceiveRequests)
         addNewRequest(request);
 
     /* These columns must match the indices in the ColumnIndex enumeration */
@@ -83,9 +82,6 @@ QVariant RecentRequestsTableModel::data(const QModelIndex& index, int role) cons
     } else if (role == Qt::TextAlignmentRole) {
         if (index.column() == Amount)
             return (int)(Qt::AlignRight | Qt::AlignVCenter);
-    }
-    else if (role == Qt::ForegroundRole) {
-        return COLOR_BLACK;
     }
     return QVariant();
 }

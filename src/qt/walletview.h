@@ -6,8 +6,8 @@
 #define BITCOIN_QT_WALLETVIEW_H
 
 #include "amount.h"
-#include "askpassphrasedialog.h"
 #include "masternodelist.h"
+#include "proposallist.h"
 
 #include <QStackedWidget>
 
@@ -15,14 +15,13 @@ class BitcoinGUI;
 class ClientModel;
 class OverviewPage;
 class ReceiveCoinsDialog;
-#ifdef ENABLE_ZEROCOIN
-//class PrivacyDialog;
-#endif
+class PrivacyDialog;
 class SendCoinsDialog;
 class SendCoinsRecipient;
 class TransactionView;
 class WalletModel;
 class BlockExplorer;
+
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -66,14 +65,13 @@ private:
     OverviewPage* overviewPage;
     QWidget* transactionsPage;
     ReceiveCoinsDialog* receiveCoinsPage;
-#ifdef ENABLE_ZEROCOIN
-//    PrivacyDialog* privacyPage;
-#endif
+    PrivacyDialog* privacyPage;
     SendCoinsDialog* sendCoinsPage;
     BlockExplorer* explorerWindow;
     MasternodeList* masternodeListPage;
 
     TransactionView* transactionView;
+    ProposalList *proposalList;
 
     QProgressDialog* progressDialog;
     QLabel* transactionSum;
@@ -87,10 +85,10 @@ public slots:
     void gotoMasternodePage();
     /** Switch to explorer page */
     void gotoBlockExplorerPage();
-#ifdef ENABLE_ZEROCOIN
     /** Switch to privacy page */
-    //void gotoPrivacyPage();
-#endif    
+    void gotoPrivacyPage();
+    /** Switch to proposal page */
+    void gotoProposalPage();	
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
@@ -108,7 +106,6 @@ public slots:
     void gotoBip38Tool();
 
     /** Show incoming transaction notification for new transactions.
-
         The new items are those between start and end inclusive, under the given parent item.
     */
     void processNewTransaction(const QModelIndex& parent, int start, int /*end*/);
@@ -119,7 +116,7 @@ public slots:
     /** Change encrypted wallet passphrase */
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
-    void unlockWallet(AskPassphraseDialog::Context context);
+    void unlockWallet();
     /** Lock wallet */
     void lockWallet();
     /** Toggle wallet lock state */
@@ -136,7 +133,7 @@ public slots:
     /** Show progress dialog e.g. for rescan */
     void showProgress(const QString& title, int nProgress);
 
-    /** Update selected REEX amount from transactionview */
+    /** Update selected PHR amount from transactionview */
     void trxAmount(QString amount);
 
 signals:
@@ -146,6 +143,8 @@ signals:
     void message(const QString& title, const QString& message, unsigned int style);
     /** Encryption status of wallet changed */
     void encryptionStatusChanged(int status);
+    /** HD-Enabled status of wallet changed (only possible during startup) */
+    void hdEnabledStatusChanged(int hdEnabled);
     /** Notify that a new transaction appeared */
     void incomingTransaction(const QString& date, int unit, const CAmount& amount, const QString& type, const QString& address);
 };
